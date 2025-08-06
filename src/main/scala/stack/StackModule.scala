@@ -43,20 +43,14 @@ class StackModule(val dataWidth: Int, val len: Int) extends Module {
   io.isEmpty := stackPointer === 0.U
   io.isFull := stackPointer === len.U
   
-  // Reset behavior
-  when (reset.asBool) {
-    stackPointer := 0.U
-    for (i <- 0 until len) {
-      stack(i) := 0.U
-    }
-  } .otherwise {
-    // Instruction decoding and execution
+  // Instruction decoding and execution
+  when (!reset.asBool) {
     switch(opcode) {
       is(PUSH_OP) {
         // Push instruction
         when(stackPointer < len.U) {
           // Stack not full - push the value
-          val pushValue = immediate(dataWidth - 1, 0)
+          val pushValue = if (dataWidth <= 25) immediate(dataWidth - 1, 0) else immediate(24, 0)
           stack(stackPointer) := pushValue
           stackPointer := stackPointer + 1.U
           io.overflow := false.B
